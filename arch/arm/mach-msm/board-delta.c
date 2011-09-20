@@ -1904,7 +1904,7 @@ static void __init msm_mddi_hitachi_qvga_display_device_init(void)
 
 	panel_data->panel_info.mddi.vdopkt = 0x0023;
 
-	panel_data->panel_info.lcd.vsync_enable = TRUE;
+	panel_data->panel_info.lcd.vsync_enable = FALSE;
 	panel_data->panel_info.lcd.refx100 = 8500;
 	panel_data->panel_info.lcd.v_back_porch = 2;
 	panel_data->panel_info.lcd.v_front_porch = 14;
@@ -1914,8 +1914,7 @@ static void __init msm_mddi_hitachi_qvga_display_device_init(void)
 
 	panel_data->panel_ext = &hitachi_qvga_panel_ext;
 
-	mddi_hitachi_qvga_display_device.dev.platform_data =
-						&hitachi_qvga_panel_data;
+	mddi_hitachi_qvga_display_device.dev.platform_data = &hitachi_qvga_panel_data;
 
 	platform_device_register(&mddi_hitachi_qvga_display_device);
 };
@@ -1978,7 +1977,7 @@ static void __init msm_mddi_samsung_qvga_display_device_init(void)
 
 	panel_data->panel_info.mddi.vdopkt = 0x0023;
 
-	panel_data->panel_info.lcd.vsync_enable = TRUE;
+	panel_data->panel_info.lcd.vsync_enable = FALSE;
 	panel_data->panel_info.lcd.refx100 = 7300;
 	panel_data->panel_info.lcd.v_back_porch = 2;
 	panel_data->panel_info.lcd.v_front_porch = 14;
@@ -2064,7 +2063,7 @@ static void __init msm_mddi_toshiba_hvga_display_device_init(void)
 
 	panel_data->panel_info.mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
 
-	panel_data->panel_info.lcd.vsync_enable = TRUE;
+	panel_data->panel_info.lcd.vsync_enable = FALSE;
 	panel_data->panel_info.lcd.refx100 = 6600;
 	panel_data->panel_info.lcd.v_back_porch = 1;
 	panel_data->panel_info.lcd.v_front_porch = 2;
@@ -2148,7 +2147,7 @@ static void __init msm_mddi_hitachi_hvga_display_device_init(void)
 
 	panel_data->panel_info.mddi.vdopkt = 0x0023;
 
-	panel_data->panel_info.lcd.vsync_enable = TRUE;
+	panel_data->panel_info.lcd.vsync_enable = FALSE;
 	panel_data->panel_info.lcd.refx100 = 8500;
 	panel_data->panel_info.lcd.v_back_porch = 1;
 	panel_data->panel_info.lcd.v_front_porch = 16;

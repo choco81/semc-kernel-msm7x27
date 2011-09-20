@@ -138,9 +138,9 @@
 #ifdef CONFIG_ES209RA_HEADSET
 #include "es209ra_headset.h"
 #endif
-#include <linux/spi/es209ra_touch.h>
+#include <linux/spi/es209ra_touch_mt.h>
 #include <asm/setup.h>
-#include <qdsp6/q6audio.h>
+#include "qdsp6/q6audio.h"
 #include <../../../drivers/video/msm/mddi_tmd_nt35580.h>
 #ifdef CONFIG_SEMC_LOW_BATT_SHUTDOWN
 #include <mach/semc_low_batt_shutdown.h>
@@ -1086,21 +1086,22 @@ static void __init msm_mddi_tmd_fwvga_display_device_init(void)
 	panel_data->panel_info.pdest = DISPLAY_1;
 	panel_data->panel_info.wait_cycle = 0;
 	panel_data->panel_info.bpp = 16;
-	panel_data->panel_info.clk_rate = 192000000;
-	panel_data->panel_info.clk_min =  190000000;
-	panel_data->panel_info.clk_max = 200000000;
+	panel_data->panel_info.clk_rate = 200000000;
+	panel_data->panel_info.clk_min =  192000000;
+	panel_data->panel_info.clk_max =  200000000;
 	panel_data->panel_info.fb_num = 2;
 
 	panel_data->panel_info.mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
 
-	panel_data->panel_info.lcd.vsync_enable = TRUE;
+	panel_data->panel_info.lcd.vsync_enable = FALSE;
 	panel_data->panel_info.lcd.v_back_porch = 12;
 	panel_data->panel_info.lcd.v_front_porch = 2;
 	panel_data->panel_info.lcd.v_pulse_width = 0;
 	panel_data->panel_info.lcd.hw_vsync_mode = TRUE;
 	panel_data->panel_info.lcd.vsync_notifier_period = 0;
 
-	panel_data->panel_info.lcd.refx100 = 100000000 / 16766;
+	panel_data->panel_info.lcd.refx100 = 7468;
+	//100000000 / 16766;
 
 	panel_data->panel_ext = &tmd_wvga_panel_ext;
 
