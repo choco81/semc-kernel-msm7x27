@@ -474,28 +474,28 @@ static struct reg_data set_disply_on_tmd_panel_new_dric[] = {
 //#define NV_READ			0
 //#define NV_OEMHW_LCD_VSYNC_I	60007
 
-#define MIN_NV	13389 /* ref100=7468 */
-#define MAX_NV	18181 /* ref100=5500 */
-#define DEF_NV	16766 /* ref100=5964 */
+//#define MIN_NV	13389 /* ref100=7468 */
+//#define MAX_NV	18181 /* ref100=5500 */
+//#define DEF_NV	16766 /* ref100=5964 */
 
-struct rpc_request_nv_cmd {
-	struct rpc_request_hdr hdr;
-	uint32_t cmd;
-	uint32_t item;
-	uint32_t more_data;
-	uint32_t desc;
-};
+//struct rpc_request_nv_cmd {
+//	struct rpc_request_hdr hdr;
+//	uint32_t cmd;
+//	uint32_t item;
+//	uint32_t more_data;
+//	uint32_t desc;
+//};
 
-struct rpc_reply_nv_cmd {
-	struct rpc_reply_hdr hdr;
-	uint32_t result;
-	uint32_t more_data;
-	uint32_t desc;
-};
+//truct rpc_reply_nv_cmd {
+//	struct rpc_reply_hdr hdr;
+//	uint32_t result;
+//	uint32_t more_data;
+//	uint32_t desc;
+//};
 
-struct nv_oemhw_lcd_vsync {
-	uint32_t vsync_usec;
-};
+//struct nv_oemhw_lcd_vsync {
+//	uint32_t vsync_usec;
+//};
 
 static void nt35580_lcd_power_on(struct platform_device *pdev)
 {
@@ -739,7 +739,7 @@ static int __init mddi_nt35580_lcd_lcd_probe(struct platform_device *pdev)
 //	nv_vsync &= (0xffff);
 //	if ((MIN_NV > nv_vsync) || (nv_vsync > MAX_NV))
 //		nv_vsync = DEF_NV ;
-	panel_data->panel_info.lcd.refx100 = 7468;
+	panel_data->panel_info.lcd.refx100 = 5500;
 	//100000000 / nv_vsync;
 
 	msm_fb_add_device(pdev);
