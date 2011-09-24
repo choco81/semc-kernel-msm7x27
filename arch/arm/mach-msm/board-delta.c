@@ -60,7 +60,7 @@
 #include "msm-keypad-devices.h"
 #include "board-delta-keypad.h"
 #ifdef CONFIG_USB_ANDROID
-#include <linux/usb/android_storage.h>
+#include <linux/usb/android_composite.h>
 #endif
 #ifdef CONFIG_SEMC_POWER_BQ24180
 #include <linux/semc/power/semc_power.h>
@@ -2766,25 +2766,8 @@ static int __init startup_reason_setup(char *str)
 }
 __setup("startup=", startup_reason_setup);
 
-/* USB serial number from cmdline */
 static int __init board_serialno_setup(char *serialno)
 {
-	int ix, len;
-	static char usb_serial_number[21];
-
-	len = strlen(serialno);
-	ix = 0;
-	while (ix < 20) {
-		if (*serialno && ix >= 20 - (len << 1)) {
-			sprintf(&usb_serial_number[ix], "%02X",
-					(unsigned char)*serialno);
-			serialno++;
-		} else {
-			sprintf(&usb_serial_number[ix], "%02X", 0);
-		}
-		ix += 2;
-	}
-	usb_serial_number[20] = '\0';
 #ifdef CONFIG_USB_ANDROID
 	int i;
 	char *src = serialno;
@@ -2795,9 +2778,10 @@ static int __init board_serialno_setup(char *serialno)
 	for (i = 0; *src; i++)
 		rndis_pdata.ethaddr[i % (ETH_ALEN -1)+1] ^= *src++;
 #endif
-	return 0;
+	return 1;
 }
-__setup("serialno=", board_serialno_setup);
+__setup_param("serialno=", board_serialno_setup_1, board_serialno_setup, 0);
+__setup_param("semcandroidboot.serialno=", board_serialno_setup_2, board_serialno_setup, 0);
 
 MACHINE_START(MSM7X27_SURF, "SEMC Delta")
 #ifdef CONFIG_MSM_DEBUG_UART
