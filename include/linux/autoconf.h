@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.29
- * Thu Sep 22 23:54:55 2011
+ * Sat Sep 24 09:30:18 2011
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_VIDEO_V4L1_COMPAT 1
@@ -10,6 +10,7 @@
 #define CONFIG_JBD2 1
 #define CONFIG_MSM_DALRPC 1
 #define CONFIG_COMPAT_BRK 1
+#define CONFIG_USB_ANDROID_RNDIS_WCEIS 1
 #define CONFIG_VIDEO_HELPER_CHIPS_AUTO 1
 #define CONFIG_IP6_NF_TARGET_REJECT 1
 #define CONFIG_CPU_FREQ_SAMPLING_LATENCY_MULTIPLIER 1000

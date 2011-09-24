@@ -176,8 +176,9 @@
 
 #define MSM_FB_BASE		MSM_PMEM_SMI_BASE
 #define MSM_GPU_PHYS_BASE 	(MSM_FB_BASE + MSM_FB_SIZE)
-#define MSM_PMEM_VENC_BASE	(MSM_GPU_PHYS_BASE + MSM_GPU_PHYS_SIZE)
-#define MSM_PMEM_VENC_SIZE	(MSM_PMEM_SMI_SIZE - MSM_FB_SIZE - MSM_GPU_PHYS_SIZE)
+#define MSM_PMEM_SMIPOOL_BASE	(MSM_GPU_PHYS_BASE + MSM_GPU_PHYS_SIZE)
+#define MSM_PMEM_SMIPOOL_SIZE	(MSM_PMEM_SMI_SIZE - MSM_FB_SIZE \
+					- MSM_GPU_PHYS_SIZE)
 
 #define PMEM_KERNEL_EBI1_SIZE	0x28000
 
@@ -677,10 +678,10 @@ static struct android_pmem_platform_data android_pmem_adsp_pdata = {
 	.cached = 0,
 };
 
-static struct android_pmem_platform_data android_pmem_venc_pdata = {
-	.name = "pmem_venc",
-	.start = MSM_PMEM_VENC_BASE,
-	.size = MSM_PMEM_VENC_SIZE,
+static struct android_pmem_platform_data android_pmem_smipool_pdata = {
+	.name = "pmem_smipool",
+	.start = MSM_PMEM_SMIPOOL_BASE,
+	.size = MSM_PMEM_SMIPOOL_SIZE,
 	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
 	.cached = 0,
 };
@@ -697,10 +698,10 @@ static struct platform_device android_pmem_adsp_device = {
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
 
-static struct platform_device android_pmem_venc_device = {
+static struct platform_device android_pmem_smipool_device = {
 	.name = "android_pmem",
 	.id = 2,
-	.dev = { .platform_data = &android_pmem_venc_pdata },
+	.dev = { .platform_data = &android_pmem_smipool_pdata },
 };
 
 static struct platform_device android_pmem_kernel_ebi1_device = {
@@ -1019,7 +1020,7 @@ static void __init msm_mddi_tmd_fwvga_display_device_init(void)
 	panel_data->panel_info.lcd.hw_vsync_mode = TRUE;
 	panel_data->panel_info.lcd.vsync_notifier_period = 0;
 
-	panel_data->panel_info.lcd.refx100 = 5500;
+	panel_data->panel_info.lcd.refx100 = 7468;
 	//100000000 / 16766;
 
 	panel_data->panel_ext = &tmd_wvga_panel_ext;
@@ -1909,7 +1910,7 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_venc_device,
+	&android_pmem_smipool_device,
 	&msm_device_nand,
 	&msm_device_i2c,
 	&qsd_device_spi,
@@ -2512,8 +2513,14 @@ static void __init es209ra_map_io(void)
 static int __init board_serialno_setup(char *serialno)
 {
 #ifdef CONFIG_USB_ANDROID
+	int i;
+	char *src = serialno;
 	android_usb_pdata.serial_number = serialno;
 	printk(KERN_INFO "USB serial number: %s\n", android_usb_pdata.serial_number);
+
+	rndis_pdata.ethaddr[0] = 0x02;
+	for (i = 0; *src; i++)
+		rndis_pdata.ethaddr[i % (ETH_ALEN -1)+1] ^= *src++;
 #endif
 	return 1;
 }

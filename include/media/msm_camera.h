@@ -350,6 +350,9 @@ struct outputCfg {
 #define OUTPUT_TYPE_V		4
 
 struct msm_frame {
+#ifdef CONFIG_SEMC_IMX046_CAMERA
+	struct timespec ts;
+#endif
 	int path;
 	unsigned long buffer;
 	uint32_t y_off;

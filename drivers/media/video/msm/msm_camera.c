@@ -37,6 +37,10 @@
 #include <linux/poll.h>
 #include <media/msm_camera.h>
 #include <mach/camera.h>
+#ifdef CONFIG_SEMC_IMX046_CAMERA
+#include <linux/syscalls.h>
+#include <linux/hrtimer.h>
+#endif
 DEFINE_MUTEX(hlist_mut);
 DEFINE_MUTEX(pp_prev_lock);
 DEFINE_MUTEX(pp_snap_lock);
@@ -496,7 +500,9 @@ static int __msm_get_frame(struct msm_sync *sync,
 			pphy->cbcr_phy);
 		goto err;
 	}
-
+#ifdef CONFIG_SEMC_IMX046_CAMERA
+	frame->ts = qcmd->ts;
+#endif
 	frame->buffer = (unsigned long)pmem_info.vaddr;
 	frame->y_off = pmem_info.y_off;
 	frame->cbcr_off = pmem_info.cbcr_off;
@@ -2166,6 +2172,9 @@ static void msm_vfe_sync(struct msm_vfe_resp *vdata,
 	qcmd->type = qtype;
 	qcmd->command = vdata;
 
+#ifdef CONFIG_SEMC_IMX046_CAMERA
+	ktime_get_ts(&(qcmd->ts));
+#endif
 	if (qtype != MSM_CAM_Q_VFE_MSG)
 		goto for_config;
 

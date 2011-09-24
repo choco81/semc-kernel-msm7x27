@@ -122,9 +122,6 @@ struct msm_queue_cmd {
 	enum msm_queue type;
 	void *command;
 	int on_heap;
-#ifdef CONFIG_SEMC_IMX046_CAMERA
-	struct timespec ts;
-#endif
 };
 
 struct msm_device_queue {
