@@ -116,21 +116,17 @@ struct flash_partition_table {
 
 static struct mtd_partition nand_partitions[] = {
         {
-                .name           = "appslog",
-                .size           = 0x00000002 >> 1,
-                .offset         = 0x00000ffe >> 1,
-        }, {
                 .name           = "cache",
-                .size           = 0x00000190 >> 1,
-                .offset         = 0x000007d0 >> 1,
-        }, {
-                .name           = "system",
-                .size           = 0x00000670 >> 1,
-                .offset         = 0x00000160 >> 1,
+                .size           = 0x00000190,
+                .offset         = 0x000007d0,
         }, {
                 .name           = "userdata",
-                .size           = 0x00000690 >> 1,
-                .offset         = 0x00000960 >> 1,
+                .size           = 0x0000069E,
+                .offset         = 0x00000960,
+        }, {
+                .name           = "system",
+                .size           = 0x00000670,
+                .offset         = 0x00000160,
         }, {
                 .name           = "boot",
                 .size           = 0x00000040,
@@ -150,7 +146,6 @@ static int get_nand_partitions(void)
 	if (msm_nand_data.nr_parts)
 		msm_nand_data.nr_parts = ARRAY_SIZE(nand_partitions);
 		msm_nand_data.parts = nand_partitions;
-		return 0;
 		return 0;
 
 	partition_table = (struct flash_partition_table *)
