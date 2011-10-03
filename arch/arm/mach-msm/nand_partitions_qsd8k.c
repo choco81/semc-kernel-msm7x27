@@ -67,21 +67,26 @@ static int __init parse_tag_msm_partition(const struct tag *tag)
 		count = MSM_MAX_PARTITIONS;
 
 	for (n = 0; n < count; n++) {
-		memcpy(name, entry->name, 15);
-		name[15] = 0;
-
-		ptn->name = name;
-		ptn->offset = entry->offset;
-		ptn->size = entry->size;
-
-		printk(KERN_INFO "Partition (from atag) %s "
+			memcpy(name, entry->name, 15);
+			name[15] = 0;
+			ptn->name = name;
+			ptn->offset = entry->offset;
+			ptn->size = entry->size;
+			printk(KERN_INFO "Partition (from atag) %s "
 				"-- Offset:%llx Size:%llx\n",
 				ptn->name, ptn->offset, ptn->size);
-
-		name += 16;
-		entry++;
-		ptn++;
+			name += 16;
+			entry++;
+			ptn++;
 	}
+
+	 ptn = &msm_nand_partitions[count];
+	 ptn->name ="boot";
+	 ptn->offset = 0x00000275;
+	 ptn->size = 0x00000062;
+//	 ptn->ecclayout = mtd->ecclayout;
+	 printk("Boot mtd partition '%s' created @%llx (%llu)\n", ptn->name, ptn->offset, ptn->size);
+	 count++;
 
 	msm_nand_data.nr_parts = count;
 	msm_nand_data.parts = msm_nand_partitions;
@@ -114,30 +119,6 @@ struct flash_partition_table {
 	struct flash_partition_entry part_entry[16];
 };
 
-static struct mtd_partition nand_partitions[] = {
-        {
-                .name           = "appslog",
-                .size           = 0x00000044 >> 1,
-                .offset         = 0x00003fbc >> 1,
-        }, {
-                .name           = "cache",
-                .size           = 0x000006f4 >> 1,
-                .offset         = 0x000038c8 >> 1,
-        }, {
-                .name           = "system",
-                .size           = 0x0000160a >> 1,
-                .offset         = 0x000005ae >> 1,
-        }, {
-                .name           = "userdata",
-                .size           = 0x00001d10 >> 1,
-                .offset         = 0x00001bb8 >> 1,
-        }, {
-                .name           = "boot",
-                .size           = 0x00000062 >> 1,
-                .offset         = 0x00000275 >> 1,
-                .mask_flags     = MTD_WRITEABLE,  /* force read-only */
-        }
-};
 
 static int get_nand_partitions(void)
 {
@@ -148,9 +129,6 @@ static int get_nand_partitions(void)
 	int part;
 
 	if (msm_nand_data.nr_parts)
-		msm_nand_data.nr_parts = ARRAY_SIZE(nand_partitions);
-		msm_nand_data.parts = nand_partitions;
-		return 0;
 		return 0;
 
 	partition_table = (struct flash_partition_table *)
