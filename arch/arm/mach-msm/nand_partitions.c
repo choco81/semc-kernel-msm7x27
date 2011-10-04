@@ -114,58 +114,6 @@ struct flash_partition_table {
 	struct flash_partition_entry part_entry[16];
 };
 
-#ifdef MACH_ES209RA//qsd8k
-static struct mtd_partition nand_partitions[] = {
-        {
-                .name           = "appslog",
-                .size           = 0x00000044 >> 1,
-                .offset         = 0x00003fbc >> 1,
-        }, {
-                .name           = "cache",
-                .size           = 0x000006f4 >> 1,
-                .offset         = 0x000038c8 >> 1,
-        }, {
-                .name           = "system",
-                .size           = 0x0000160a >> 1,
-                .offset         = 0x000005ae >> 1,
-        }, {
-                .name           = "userdata",
-                .size           = 0x00001d10 >> 1,
-                .offset         = 0x00001bb8 >> 1,
-        }, {
-                .name           = "boot",
-                .size           = 0x00000062,
-                .offset         = 0x00000275,
-                .mask_flags     = MTD_WRITEABLE,  /* force read-only */
-        }
-};
-#else //msm7x27
-static struct mtd_partition nand_partitions[] = {
-        {
-                .name           = "appslog",
-                .size           = 0x00000002 >> 1,
-                .offset         = 0x00000ffe >> 1,
-        }, {
-                .name           = "cache",
-                .size           = 0x00000190 >> 1,
-                .offset         = 0x000007d0 >> 1,
-        }, {
-                .name           = "system",
-                .size           = 0x00000670 >> 1,
-                .offset         = 0x00000160 >> 1,
-        }, {
-                .name           = "userdata",
-                .size           = 0x00000690 >> 1,
-                .offset         = 0x00000960 >> 1,
-        }, {
-                .name           = "boot",
-                .size           = 0x00000040,
-                .offset         = 0x00000120,
-                .mask_flags     = MTD_WRITEABLE,  /* force read-only */
-        }
-};
-
-#endif
 
 static int get_nand_partitions(void)
 {
@@ -185,10 +133,7 @@ static int get_nand_partitions(void)
 	if (!partition_table) {
 		printk(KERN_WARNING "%s: no flash partition table in shared "
 		       "memory\n", __func__);
-		msm_nand_data.nr_parts = ARRAY_SIZE(nand_partitions);
-		msm_nand_data.parts = nand_partitions;
-		return 0;
-		//return -ENOENT;
+		return -ENOENT;
 	}
 
 	if ((partition_table->magic1 != (u32) FLASH_PART_MAGIC1) ||
