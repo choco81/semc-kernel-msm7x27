@@ -84,8 +84,9 @@ static int __init parse_tag_msm_partition(const struct tag *tag)
 	 ptn->name ="boot";
 	 ptn->offset = 0x00000275;
 	 ptn->size = 0x00000062;
-//	 ptn->ecclayout = mtd->ecclayout;
-	 printk("Boot mtd partition '%s' created @%llx (%llu)\n", ptn->name, ptn->offset, ptn->size);
+	 ptn->ecclayout = 0;
+	 ptn->mask_flags = 0;
+	 printk("Boot mtd '%s' created @%llx (%llu)\n", ptn->name, ptn->offset, ptn->size);
 	 count++;
 
 	msm_nand_data.nr_parts = count;

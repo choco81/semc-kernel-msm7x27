@@ -6600,8 +6600,10 @@ int msm_onenand_scan(struct mtd_info *mtd, int maxchips)
 		return -ENODEV;
 
 	mtd->size = 0x1000000 << ((onenand_info.device_id & 0xF0) >> 4);
-	mtd->writesize = onenand_info.data_buf_size;
-	mtd->oobsize = mtd->writesize >> 5;
+	mtd->writesize = 2048;
+	//onenand_info.data_buf_size;
+	mtd->oobsize = 64;
+	//mtd->writesize >> 5;
 	mtd->erasesize = mtd->writesize << 6;
 	mtd->oobavail = msm_onenand_oob_64.oobavail;
 	mtd->ecclayout = &msm_onenand_oob_64;
