@@ -72,9 +72,7 @@ static int __init parse_tag_msm_partition(const struct tag *tag)
 			ptn->name = name;
 			ptn->offset = entry->offset;
 			ptn->size = entry->size;
-			printk(KERN_INFO "Partition (from atag) %s "
-				"-- Offset:%llx Size:%llx\n",
-				ptn->name, ptn->offset, ptn->size);
+			printk(KERN_INFO "Partition (from atag) %s -- Offset:%llx Size:%llx\n",ptn->name, ptn->offset, ptn->size);
 			name += 16;
 			entry++;
 			ptn++;
@@ -86,7 +84,7 @@ static int __init parse_tag_msm_partition(const struct tag *tag)
 	 ptn->size = 0x00000062;
 	 ptn->ecclayout = 0;
 	 ptn->mask_flags = 0;
-	 printk("Boot mtd '%s' created @%llx (%llu)\n", ptn->name, ptn->offset, ptn->size);
+	 printk("Partition (from atag) %s -- Offset:%llx Size:%llx\n", ptn->name, ptn->offset, ptn->size);
 	 count++;
 
 	msm_nand_data.nr_parts = count;
