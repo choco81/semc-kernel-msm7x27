@@ -2355,7 +2355,6 @@ static int __init es209ra_startup_reason_setup(char *str)
 	return 1;
 }
 __setup_param("startup=", es209ra_startup_reason_setup_1, es209ra_startup_reason_setup, 0);
-__setup_param("semcandroidboot.startup=", es209ra_startup_reason_setup_2, es209ra_startup_reason_setup, 0);
 
 static int es209ra_hw_version = 0;
 

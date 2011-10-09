@@ -2781,7 +2781,6 @@ static int __init board_serialno_setup(char *serialno)
 	return 1;
 }
 __setup_param("serialno=", board_serialno_setup_1, board_serialno_setup, 0);
-__setup_param("semcandroidboot.serialno=", board_serialno_setup_2, board_serialno_setup, 0);
 
 MACHINE_START(MSM7X27_SURF, "SEMC Delta")
 #ifdef CONFIG_MSM_DEBUG_UART
