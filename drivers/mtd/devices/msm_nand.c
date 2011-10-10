@@ -813,9 +813,7 @@ msm_nand_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops)
 			uint32_t cfg1;
 			uint32_t exec;
 			uint32_t ecccfg;
-			uint32_t clrfstatus;
-			uint32_t clrrstatus;
-			uint32_t flash_status[8];
+			uint32_t flash_status[4];
 		} data;
 	} *dma_buffer;
 	dmov_s *cmd;
@@ -923,8 +921,6 @@ msm_nand_write_oob(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops)
 
 			/* GO bit for the EXEC register */
 		dma_buffer->data.exec = 1;
-		dma_buffer->data.clrfstatus = 0x00000020;
-		dma_buffer->data.clrrstatus = 0x000000C0;
 
 		BUILD_BUG_ON(8 != ARRAY_SIZE(dma_buffer->data.flash_status));
 
