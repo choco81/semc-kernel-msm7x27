@@ -70,8 +70,8 @@ static int __init parse_tag_msm_partition(const struct tag *tag)
 			memcpy(name, entry->name, 15);
 			name[15] = 0;
 			ptn->name = name;
-			ptn->offset = entry->offset*64*2048;
-			ptn->size = entry->size*64*2048;
+			ptn->offset = entry->offset;
+			ptn->size = entry->size;
 			printk(KERN_INFO "Partition (from atag) %s -- Offset:%llx Size:%llx\n",ptn->name, ptn->offset, ptn->size);
 			name += 16;
 			entry++;
@@ -80,9 +80,9 @@ static int __init parse_tag_msm_partition(const struct tag *tag)
 
 	 ptn = &msm_nand_partitions[count];
 	 ptn->name ="boot";
-	 ptn->offset = 0x00000275*64*2048;
-	 ptn->size = 0x00000062*64*2048;
-	 ptn->ecclayout = 0;
+	 ptn->offset = 0x00000275;
+	 ptn->size = 0x00000062;
+//	 ptn->ecclayout = 0;
 	 ptn->mask_flags = 0;
 	 printk("Partition (from atag) %s -- Offset:%llx Size:%llx\n", ptn->name, ptn->offset, ptn->size);
 	 count++;
