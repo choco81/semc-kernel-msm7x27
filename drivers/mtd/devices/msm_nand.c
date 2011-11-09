@@ -37,6 +37,41 @@ unsigned long msm_nandc01_phys;
 unsigned long msm_nandc10_phys;
 unsigned long msm_nandc11_phys;
 unsigned long ebi2_register_base;
+uint8_t wide_bus;
+
+	//default for all yaffs2 mtd's
+uint32_t 	cfg0_yaffs2 = (3 << 6) /* 4/8 codeword per page for 2/4k nand */
+	| (516 << 9) /* 516 user data bytes */
+	| (10 << 19) /* 10 parity bytes */
+	| (5 << 27) /* 5 address cycles */
+	| (0 << 30) /* Dont read status before data */
+	| (1 << 31) /* Send read cmd *//* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
+	| (0 << 23);
+	
+uint32_t 	cfg1_yaffs2 = (0 << 0) /* Enable ecc */
+	| (7 << 2) /* (value+1) recovery cycles */
+	| (0 << 5) /* Allow CS deassertion */
+	| (465 << 6)/* Bad block marker location */
+	| (0 << 16) /* Bad block in user data area */
+	| (2 << 17) /* (value+1)x2 clock cycle tWB/tRB */
+	| (1 << 1); /* Wide flash bit */
+
+	//special config for kernel mtd
+uint32_t 	cfg0_boot = (3 << 6) /* 4/8 codeword per page for 2/4k nand */
+	| (512 << 9) /* 512 user data bytes */
+	| (10 << 19) /* 10 parity bytes */
+	| (5 << 27) /* 5 address cycles */
+	| (0 << 30) /* Do not read status before data */
+	| (1 << 31) /* Send read cmd */
+	| (4 << 23); /* 4 spare bytes */
+
+uint32_t 	cfg1_boot = (0 << 0) /* Enable ecc */
+	| (7 << 2) /* (value+1) recovery cycles */
+	| (0 << 5) /* Allow CS deassertion */
+	| (465 << 6) /* Bad block marker location */
+	| (0 << 16) /* Bad block in user data area */
+	| (2 << 17) /* (value+1)x2 clock cycle tWB/tRB */
+	| (1 << 1); /* Wide flash bit */
 
 #define MSM_NAND_DMA_BUFFER_SIZE SZ_8K
 #define MSM_NAND_DMA_BUFFER_SLOTS \
@@ -512,23 +547,17 @@ static int msm_nand_read_oob(struct mtd_info *mtd, loff_t from,
 		/* CMD / ADDR0 / ADDR1 / CHIPSEL program values */
 		if (ops->mode != MTD_OOB_RAW) {
 			dma_buffer->data.cmd = NAND_CMD_PAGE_READ_ECC;
-			dma_buffer->data.cfg0 =
-			(chip->CFG0 & ~(7U << 6))
-				| (((cwperpage-1) - start_sector) << 6);
+			dma_buffer->data.cfg0 = (chip->CFG0 & ~(7U << 6)) | (((cwperpage-1) - start_sector) << 6);
 			dma_buffer->data.cfg1 = chip->CFG1;
 		} else {
 			dma_buffer->data.cmd = NAND_CMD_PAGE_READ;
-			dma_buffer->data.cfg0 = (NAND_CFG0_RAW
-					& ~(7U << 6)) | ((cwperpage-1) << 6);
-			dma_buffer->data.cfg1 = NAND_CFG1_RAW |
-					(chip->CFG1 & CFG1_WIDE_FLASH);
+			dma_buffer->data.cfg0 = (NAND_CFG0_RAW & ~(7U << 6)) | ((cwperpage-1) << 6);
+			dma_buffer->data.cfg1 = NAND_CFG1_RAW | (chip->CFG1 & CFG1_WIDE_FLASH);
 		}
 
 		dma_buffer->data.addr0 = (page << 16) | oob_col;
-		/* qc example is (page >> 16) && 0xff !? */
-		dma_buffer->data.addr1 = (page >> 16) & 0xff;
-		/* flash0 + undoc bit */
-		dma_buffer->data.chipsel = 0 | 4;
+		dma_buffer->data.addr1 = (page >> 16) & 0xff; /* qc example is (page >> 16) && 0xff !? */
+		dma_buffer->data.chipsel = 0 | 4; /* flash0 + undoc bit */
 
 
 		/* GO bit for the EXEC register */
@@ -557,16 +586,14 @@ static int msm_nand_read_oob(struct mtd_info *mtd, loff_t from,
 
 			if (n == start_sector) {
 				cmd->cmd = 0;
-				cmd->src = msm_virt_to_dma(chip,
-							&dma_buffer->data.cfg0);
+				cmd->src = msm_virt_to_dma(chip,&dma_buffer->data.cfg0);
 				cmd->dst = NAND_DEV0_CFG0;
 				cmd->len = 8;
 				cmd++;
 
 				dma_buffer->data.ecccfg = chip->ecc_buf_cfg;
 				cmd->cmd = 0;
-				cmd->src = msm_virt_to_dma(chip,
-						&dma_buffer->data.ecccfg);
+				cmd->src = msm_virt_to_dma(chip,&dma_buffer->data.ecccfg);
 				cmd->dst = NAND_EBI2_ECC_BUF_CFG;
 				cmd->len = 4;
 				cmd++;
@@ -1483,11 +1510,7 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 	struct msm_nand_chip *chip = mtd->priv;
 	uint32_t flash_id = 0, i = 1, mtd_writesize;
 	uint8_t dev_found = 0;
-	uint8_t wide_bus;
 	uint8_t index;
-	uint32_t cfg0_boot, cfg0_yaffs2;
-	uint32_t cfg1_boot, cfg1_yaffs2;
-
 
 	/* Read the Flash ID from the Nand Flash Device */
 	flash_id = flash_read_id(chip);
@@ -1532,39 +1555,6 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 		return -ENODEV;
 	}
 
-	//default for all yaffs2 mtd's
-	cfg0_yaffs2 = ((mtd_writesize >> 9) << 6) /* 4/8 codeword per page for 2/4k nand */
-	| (516 << 9) /* 516 user data bytes */
-	| (10 << 19) /* 10 parity bytes */
-	| (5 << 27) /* 5 address cycles */
-	| (0 << 30) /* Dont read status before data */
-	| (1 << 31) /* Send read cmd *//* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
-	| ((wide_bus) ? (0 << 23) : (1 << 23));
-	
-	cfg1_yaffs2 = (0 << 0) /* Enable ecc */
-	| (7 << 2) /* (value+1) recovery cycles */
-	| (0 << 5) /* Allow CS deassertion */
-	| ((mtd_writesize - (528 * ((mtd_writesize >> 9) -1)) +1) << 6)/* Bad block marker location */
-	| (0 << 16) /* Bad block in user data area */
-	| (2 << 17) /* (value+1)x2 clock cycle tWB/tRB */
-	| (wide_bus << 1); /* Wide flash bit */
-
-	//special config for kernel mtd
-	cfg0_boot = ((mtd_writesize >> 9)<< 6) /* 4/8 codeword per page for 2/4k nand */
-	| (512 << 9) /* 512 user data bytes */
-	| (10 << 19) /* 10 parity bytes */
-	| (5 << 27) /* 5 address cycles */
-	| (0 << 30) /* Do not read status before data */
-	| (1 << 31) /* Send read cmd */
-	| (4 << 23); /* 4 spare bytes */
-
-	cfg1_boot = (0 << 0) /* Enable ecc */
-	| (7 << 2) /* (value+1) recovery cycles */
-	| (0 << 5) /* Allow CS deassertion */
-	| ((mtd_writesize - (528 * ((mtd_writesize >> 9) -1)) +1) << 6) /* Bad block marker location */
-	| (0 << 16) /* Bad block in user data area */
-	| (2 << 17) /* (value+1)x2 clock cycle tWB/tRB */
-	| (wide_bus << 1); /* Wide flash bit */
 
 	chip->CFG0 = cfg0_yaffs2;
 	chip->CFG1 = cfg1_yaffs2;
