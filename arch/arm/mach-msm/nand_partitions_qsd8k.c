@@ -82,7 +82,6 @@ static int __init parse_tag_msm_partition(const struct tag *tag)
 	 ptn->name ="boot";
 	 ptn->offset = 0x00000275;
 	 ptn->size = 0x00000062;
-//	 ptn->ecclayout = 0;
 	 ptn->mask_flags = 0;
 	 printk("Partition (from atag) %s -- Offset:%llx Size:%llx\n", ptn->name, ptn->offset, ptn->size);
 	 count++;

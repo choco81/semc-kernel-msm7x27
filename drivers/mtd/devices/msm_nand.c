@@ -33,6 +33,10 @@
 #include "msm_nand.h"
 
 unsigned long msm_nand_phys;
+unsigned long msm_nandc01_phys;
+unsigned long msm_nandc10_phys;
+unsigned long msm_nandc11_phys;
+unsigned long ebi2_register_base;
 
 #define MSM_NAND_DMA_BUFFER_SIZE SZ_8K
 #define MSM_NAND_DMA_BUFFER_SLOTS \
@@ -40,6 +44,7 @@ unsigned long msm_nand_phys;
 
 #define NAND_CFG0_RAW 0xA80420C0
 #define NAND_CFG1_RAW 0x5045D
+
 
 #define VERBOSE 0
 
@@ -341,22 +346,29 @@ struct flash_identification {
 static struct flash_identification supported_flash[] =
 {
 	/* Flash ID  ID Mask   Density(MB) Wid  Pgsz  Blksz oobsz cyc 2nd_bbm*/
+	/* Samsung */
 	{0x1500aaec, 0xFF00FFFF,  (256<<20), 0, 2048, (2048<<6),  64, 5, 1},
 	{0x5500baec, 0xFF00FFFF,  (256<<20), 1, 2048, (2048<<6),  64, 5, 1},
 	{0x5500bcec, 0xFF00FFFF,  (512<<20), 1, 2048, (2048<<6),  64, 5, 1},
 	{0x6600bcec, 0xFF00FFFF,  (512<<20), 1, 4096, (4096<<6), 128, 5, 1},
 	{0x5501B3EC, 0xFFFFFFFF, (1024<<20), 1, 2048, (2048<<6),  64, 5, 1},
+	/* Toshiba */
 	{0x1500aa98, 0xFFFFFFFF,  (256<<20), 0, 2048, (2048<<6),  64, 5, 0},
 	{0x5500ba98, 0xFFFFFFFF,  (256<<20), 1, 2048, (2048<<6),  64, 5, 0},
 	{0x5591b398, 0x0000FFFF, (1024<<20), 1, 2048, (2048<<6),  64, 5, 0},
+	/* Micron */
 	{0xd580b12c, 0xFFFFFFFF,  (128<<20), 1, 2048, (2048<<6),  64, 5, 0},
 	{0x55d1b32c, 0xFFFFFFFF, (1024<<20), 1, 2048, (2048<<6),  64, 3, 0},
+	/* Hynx */
 	{0x5580baad, 0xFFFFFFFF,  (256<<20), 1, 2048, (2048<<6),  64, 5, 0},
 	{0x5510baad, 0xFFFFFFFF,  (256<<20), 1, 2048, (2048<<6),  64, 5, 0},
+	/* Numonyx */
 	{0x5510bc20, 0xFFFFFFFF,  (512<<20), 1, 2048, (2048<<6),  64, 5, 0},
 	{0x5551b320, 0xFFFFFFFF, (1024<<20), 1, 2048, (2048<<6),  64, 3, 0},
 	/* Note: Width flag is 0 for 8 bit Flash and 1 for 16 bit flash      */
 };
+
+
 
 static int msm_nand_read_oob(struct mtd_info *mtd, loff_t from,
 			     struct mtd_oob_ops *ops)
@@ -766,6 +778,8 @@ err_dma_map_oobbuf_failed:
 	return err;
 }
 
+
+
 static int
 msm_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	      size_t *retlen, u_char *buf)
@@ -1104,6 +1118,8 @@ err_dma_map_oobbuf_failed:
 	return err;
 }
 
+
+
 static int msm_nand_write(struct mtd_info *mtd, loff_t to, size_t len,
 			  size_t *retlen, const u_char *buf)
 {
@@ -1360,6 +1376,7 @@ msm_nand_block_isbad_singlenandc(struct mtd_info *mtd, loff_t ofs)
 }
 
 
+
 static int
 msm_nand_block_markbad(struct mtd_info *mtd, loff_t ofs)
 {
@@ -1427,7 +1444,9 @@ msm_nand_block_isbad(struct mtd_info *mtd, loff_t ofs)
 
 	/* Check if first page (or second if two markers) have bad block
 	 * marking. */
-	ret = msm_nand_block_isbad_singlenandc(mtd, ofs);
+	for (; ofs <= max_ofs && ret == 0; ofs += mtd->writesize) {
+			ret = msm_nand_block_isbad_singlenandc(mtd, ofs);
+	}
 
 	return ret;
 }
@@ -1466,6 +1485,9 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 	uint8_t dev_found = 0;
 	uint8_t wide_bus;
 	uint8_t index;
+	uint32_t cfg0_boot, cfg0_yaffs2;
+	uint32_t cfg1_boot, cfg1_yaffs2;
+
 
 	/* Read the Flash ID from the Nand Flash Device */
 	flash_id = flash_read_id(chip);
@@ -1476,6 +1498,12 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 			dev_found = 1;
 			break;
 		}
+	}
+
+	if (!dev_found) {
+		/* Probe the Flash device for ONFI compliance */
+			index = 0;
+			dev_found = 1;
 	}
 
 	if (dev_found) {
@@ -1504,24 +1532,42 @@ int msm_nand_scan(struct mtd_info *mtd, int maxchips)
 		return -ENODEV;
 	}
 
-	chip->CFG0 = (((mtd_writesize >> 9)-1) << 6) /* 4/8 cw/pg for 2/4k */
-		|  (516 <<  9)  /* 516 user data bytes */
-		|   (10 << 19)  /* 10 parity bytes */
-		|    (5 << 27)  /* 5 address cycles */
-		|    (0 << 30)  /* Do not read status before data */
-		|    (1 << 31)  /* Send read cmd */
-		/* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
-		| ((wide_bus) ? (0 << 23) : (1 << 23));
+	//default for all yaffs2 mtd's
+	cfg0_yaffs2 = ((mtd_writesize >> 9) << 6) /* 4/8 codeword per page for 2/4k nand */
+	| (516 << 9) /* 516 user data bytes */
+	| (10 << 19) /* 10 parity bytes */
+	| (5 << 27) /* 5 address cycles */
+	| (0 << 30) /* Dont read status before data */
+	| (1 << 31) /* Send read cmd *//* 0 spare bytes for 16 bit nand or 1 spare bytes for 8 bit */
+	| ((wide_bus) ? (0 << 23) : (1 << 23));
+	
+	cfg1_yaffs2 = (0 << 0) /* Enable ecc */
+	| (7 << 2) /* (value+1) recovery cycles */
+	| (0 << 5) /* Allow CS deassertion */
+	| ((mtd_writesize - (528 * ((mtd_writesize >> 9) -1)) +1) << 6)/* Bad block marker location */
+	| (0 << 16) /* Bad block in user data area */
+	| (2 << 17) /* (value+1)x2 clock cycle tWB/tRB */
+	| (wide_bus << 1); /* Wide flash bit */
 
-	chip->CFG1 = (0 <<  0)  /* Enable ecc */
-		|    (7 <<  2)  /* 8 recovery cycles */
-		|    (0 <<  5)  /* Allow CS deassertion */
-		|  ((mtd_writesize - (528 * ((mtd_writesize >> 9) - 1)) + 1)
-				<<  6)  /* Bad block marker location */
-		|    (0 << 16)  /* Bad block in user data area */
-		|    (2 << 17)  /* 6 cycle tWB/tRB */
-		| (wide_bus << 1); /* Wide flash bit */
+	//special config for kernel mtd
+	cfg0_boot = ((mtd_writesize >> 9)<< 6) /* 4/8 codeword per page for 2/4k nand */
+	| (512 << 9) /* 512 user data bytes */
+	| (10 << 19) /* 10 parity bytes */
+	| (5 << 27) /* 5 address cycles */
+	| (0 << 30) /* Do not read status before data */
+	| (1 << 31) /* Send read cmd */
+	| (4 << 23); /* 4 spare bytes */
 
+	cfg1_boot = (0 << 0) /* Enable ecc */
+	| (7 << 2) /* (value+1) recovery cycles */
+	| (0 << 5) /* Allow CS deassertion */
+	| ((mtd_writesize - (528 * ((mtd_writesize >> 9) -1)) +1) << 6) /* Bad block marker location */
+	| (0 << 16) /* Bad block in user data area */
+	| (2 << 17) /* (value+1)x2 clock cycle tWB/tRB */
+	| (wide_bus << 1); /* Wide flash bit */
+
+	chip->CFG0 = cfg0_yaffs2;
+	chip->CFG1 = cfg1_yaffs2;
 	chip->ecc_buf_cfg = 0x203;
 
 	pr_info("CFG0 Init  : 0x%08x \n", chip->CFG0);
@@ -1599,6 +1645,7 @@ struct msm_nand_info {
 	struct msm_nand_chip	msm_nand;
 };
 
+
 #ifdef CONFIG_MTD_PARTITIONS
 static void setup_mtd_device(struct platform_device *pdev,
 			     struct msm_nand_info *info)
@@ -1645,6 +1692,7 @@ static int __devinit msm_nand_probe(struct platform_device *pdev)
 	msm_nand_phys = res->start;
 	pr_info("msm_nand: phys addr 0x%lx \n", msm_nand_phys);
 
+
 	res = platform_get_resource_byname(pdev,
 					IORESOURCE_DMA, "msm_nand_dmac");
 	if (!res || !res->start) {
@@ -1679,10 +1727,8 @@ static int __devinit msm_nand_probe(struct platform_device *pdev)
 	info->mtd.priv = &info->msm_nand;
 	info->mtd.owner = THIS_MODULE;
 
-	if (msm_nand_scan(&info->mtd, 1)){
-			err = -ENXIO;
+	if (msm_nand_scan(&info->mtd, 1))
 			goto out_free_dma_buffer;
-		}
 
 	setup_mtd_device(pdev, info);
 	dev_set_drvdata(&pdev->dev, info);
