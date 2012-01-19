@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.29
-# Thu Nov 10 07:57:07 2011
+# Thu Jan 19 09:01:57 2012
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -1114,7 +1114,8 @@ CONFIG_UNIX98_PTYS=y
 # CONFIG_TCG_TPM is not set
 # CONFIG_DCC_TTY is not set
 CONFIG_MSM_KGSL=y
-CONFIG_MSM_KGSL_DRM=y
+# CONFIG_MSM_KGSL_2D is not set
+# CONFIG_MSM_KGSL_DRM is not set
 CONFIG_MSM_KGSL_MMU=y
 # CONFIG_KGSL_PER_PROCESS_PAGE_TABLE is not set
 # CONFIG_MSM_KGSL_MMU_PAGE_FAULT is not set
@@ -1833,7 +1834,7 @@ CONFIG_NETWORK_FILESYSTEMS=y
 # CONFIG_NFS_FS is not set
 # CONFIG_NFSD is not set
 # CONFIG_SMB_FS is not set
-CONFIG_CIFS=y
+# CONFIG_CIFS is not set
 # CONFIG_CIFS_STATS is not set
 # CONFIG_CIFS_WEAK_PW_HASH is not set
 # CONFIG_CIFS_XATTR is not set
