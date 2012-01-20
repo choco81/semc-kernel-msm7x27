@@ -212,18 +212,6 @@ static struct platform_device ram_console_device = {
         .resource       = ram_console_resources,
 };
 
-#ifdef CONFIG_SMC91X
-static struct resource smc91x_resources[] = {
-	[0] = {
-		.flags  = IORESOURCE_MEM,
-	},
-	[1] = {
-		.flags  = IORESOURCE_IRQ,
-	},
-};
-#endif
-
-
 #ifdef CONFIG_USB_ANDROID
 /* dynamic composition */
 static char *usb_func_msc[] = {
@@ -340,16 +328,6 @@ static struct platform_device android_usb_device = {
 };
 #endif
 
-#ifdef CONFIG_SMC91X
-static struct platform_device smc91x_device = {
-	.name           = "smc91x",
-	.id             = 0,
-	.num_resources  = ARRAY_SIZE(smc91x_resources),
-	.resource       = smc91x_resources,
-};
-#endif /* CONFIG_SMC91X */
-
- 
 static struct platform_device hs_device = {
 	.name   = "msm-handset",
 	.id     = -1,
@@ -1613,9 +1591,6 @@ static struct platform_device pmic_time_device = {
 static struct platform_device *devices[] __initdata = {
 	&msm_wlan_ar6000_pm_device,
 	&msm_fb_device,
-#ifdef CONFIG_SMC91X
-	&smc91x_device,
-#endif
 	&msm_device_smd,
 	&msm_device_dmov,
 	&android_pmem_kernel_ebi1_device,
@@ -1866,27 +1841,6 @@ static void __init es209ra_init_mmc(void)
 #endif
 }
 
-#ifdef CONFIG_SMC91X
-static void __init es209ra_cfg_smc91x(void)
-{
-	int rc = 0;
-
-	smc91x_resources[0].start = 0x70000300;
-	smc91x_resources[0].end = 0x700003ff;
-	smc91x_resources[1].start = INT_ES209RA_GPIO_ETHER;
-	smc91x_resources[1].end = INT_ES209RA_GPIO_ETHER;
-
-	rc = gpio_tlmm_config(GPIO_CFG(107, 0, GPIO_INPUT,
-					       GPIO_PULL_DOWN, GPIO_2MA),
-					       GPIO_ENABLE);
-		if (rc) {
-			printk(KERN_ERR "%s: gpio_tlmm_config=%d\n",
-					__func__, rc);
-		}
-		printk(KERN_ERR "%s: invalid machine type\n", __func__);
-}
-#endif
-
 static struct msm_pm_platform_data msm_pm_data[MSM_PM_SLEEP_MODE_NR] = {
 	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].supported = 1,
 	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].suspend_enabled = 1,
@@ -2039,9 +1993,6 @@ static void __init es209ra_init(void)
 	set_predecode_repair_cache();
 	printk(KERN_ERR "PVR0F2: %x\n", get_predecode_repair_cache());
 
-#ifdef CONFIG_SMC91X
-	es209ra_cfg_smc91x();
-#endif
 	msm_acpu_clock_init(&qsd8x50_clock_data);
 
 	msm_hsusb_pdata.swfi_latency =
