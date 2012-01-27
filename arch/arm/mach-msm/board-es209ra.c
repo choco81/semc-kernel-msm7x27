@@ -144,11 +144,11 @@
 #define MSM_PMEM_SMI_BASE	0x02B00000
 #define MSM_PMEM_SMI_SIZE	0x01500000
 
-#define MSM_FB_BASE		0x03400000 // 0x02B00000
+#define MSM_FB_BASE		0x02B00000
 #define MSM_FB_SIZE		0x00300000 // 0x00500000
 
-#define MSM_GPU_PHYS_BASE 	0x03200000 //0x03000000
-#define MSM_GPU_PHYS_SIZE 	0x00200000 //0x00200000
+#define MSM_GPU_PHYS_BASE 	0x03000000
+#define MSM_GPU_PHYS_SIZE 	0x00200000
 
 #define MSM_RAM_CONSOLE_START   0x38000000 - MSM_RAM_CONSOLE_SIZE
 #define MSM_RAM_CONSOLE_SIZE    128 * SZ_1K
@@ -278,11 +278,6 @@ static struct usb_mass_storage_platform_data mass_storage_pdata = {
         .vendor = "SEMC",
         .product = "Mass Storage",
         .release = 0x0100,
-
-//        .cdrom_nluns = 1,
-//        .cdrom_vendor = "SEMC",
-//        .cdrom_product = "CD-ROM",
-//        .cdrom_release = 0x0100,
 };
 
 static struct platform_device usb_mass_storage_device = {
