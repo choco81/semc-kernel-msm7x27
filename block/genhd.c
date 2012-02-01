@@ -514,6 +514,7 @@ void add_disk(struct gendisk *disk)
 	struct backing_dev_info *bdi;
 	dev_t devt;
 	int retval;
+	unsigned long size;
 
 	/* minors == 0 indicates to use ext devt from part0 and should
 	 * be accompanied with EXT_DEVT flag.  Make sure all
@@ -547,6 +548,23 @@ void add_disk(struct gendisk *disk)
 	retval = sysfs_create_link(&disk_to_dev(disk)->kobj, &bdi->dev->kobj,
 				   "bdi");
 	WARN_ON(retval);
+	
+	/*
+	 * limit readahead size for small devices
+	 *        disk size    readahead size
+	 *               2M                4k
+	 *               8M                8k
+	 *              32M               16k
+	 *             128M               32k
+	 *             512M               64k
+	 *               2G              128k
+	 *               8G              256k
+	 *              32G              512k
+	 *             128G             1024k
+	 */
+	size = get_capacity(disk) >> 12;
+	size = 1UL << (ilog2(size) / 2);
+	bdi->ra_pages = min(bdi->ra_pages, size);
 }
 
 EXPORT_SYMBOL(add_disk);
