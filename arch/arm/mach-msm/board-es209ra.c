@@ -147,8 +147,11 @@
 #define MSM_FB_BASE		0x02B00000
 #define MSM_FB_SIZE		0x00300000 // 0x00500000
 
-#define MSM_GPU_PHYS_BASE 	0x03000000
+#define MSM_GPU_PHYS_BASE 	(MSM_FB_BASE + MSM_FB_SIZE)//0x03000000
 #define MSM_GPU_PHYS_SIZE 	0x00200000
+
+#define MSM_PMEM_VENC_BASE   (MSM_GPU_PHYS_BASE + MSM_GPU_PHYS_SIZE)
+#define MSM_PMEM_VENC_SIZE   (MSM_PMEM_SMI_SIZE - MSM_FB_SIZE - MSM_GPU_PHYS_SIZE)
 
 #define MSM_RAM_CONSOLE_START   0x38000000 - MSM_RAM_CONSOLE_SIZE
 #define MSM_RAM_CONSOLE_SIZE    128 * SZ_1K
@@ -561,6 +564,14 @@ static struct android_pmem_platform_data android_pmem_adsp_pdata = {
 	.cached = 0,
 };
 
+static struct android_pmem_platform_data android_pmem_venc_pdata = {
+  .name = "pmem_venc",
+  .start = MSM_PMEM_VENC_BASE,
+  .size = MSM_PMEM_VENC_SIZE,
+  .allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
+  .cached = 0,
+};
+
 static struct platform_device android_pmem_device = {
 	.name = "android_pmem",
 	.id = 0,
@@ -571,6 +582,12 @@ static struct platform_device android_pmem_adsp_device = {
 	.name = "android_pmem",
 	.id = 1,
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
+};
+
+static struct platform_device android_pmem_venc_device = {
+  .name = "android_pmem",
+  .id = 2,
+  .dev = { .platform_data = &android_pmem_venc_pdata },
 };
 
 static struct platform_device android_pmem_kernel_ebi1_device = {
@@ -1591,6 +1608,7 @@ static struct platform_device *devices[] __initdata = {
 	&android_pmem_kernel_ebi1_device,
 	&android_pmem_device,
 	&android_pmem_adsp_device,
+	&android_pmem_venc_device,
 	&msm_device_nand,
 	&msm_device_i2c,
 	&qsd_device_spi,
